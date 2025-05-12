@@ -1,26 +1,66 @@
-# Third-Party API Documentation
+# LinkedIn API Documentation
+
+![LinkedIn API](https://content.pstmn.io/8b056aeb-b6c2-4110-85ab-ae759e519e21/bG9nby1zeW1ib2wucG5n)
+
+## Introduction
+
+Welcome to the LinkedIn API. Let's get started with a quick setup on how to use the API!
+
+**Version:** 1.0.0  
+**Last Updated:** May 12, 2025  
+**Base URL:** `https://dev-api.konnector.ai/social_app/api/v1/third_party`
+
+This API provides access to LinkedIn campaign data, user information, and analytics for third-party integrations. Use this API to build custom dashboards, integrate with CRM systems, and automate reporting workflows.
+
+## Finding your API key
+
+The first step when using the LinkedIn API is authenticating your requests with an API key.  
+The API key is used to authenticate the incoming requests and map them to your organization.  
+API keys never expire, however they can be deleted/deactivated.
 
 ## Authentication
 
-All API requests require authentication using an API key. Include your API key in the request headers:
+After you have your API key, you will need to provide it in every request that you make to the LinkedIn API.  
+You will need to add the `Authorization` request header to every request and set your API key as the value.
 
 ```
-X-API-KEY: your_api_key_here
+Authorization: your_api_key_here
 ```
 
-API keys are associated with an organisation and can be managed through the admin interface. Contact your administrator to obtain an API key.
+### Test your API key
+
+Once you have your API key, you can check if it's working by sending the following request.  
+If everything is working properly, you should get a `200` HTTP status code.
+
+```bash
+curl --location 'https://dev-api.konnector.ai/social_app/api/v1/third_party/user-campaign-filters' \
+--header 'Authorization: your_api_key_here'
+```
+
+---
 
 ## Encrypted Identifiers
 
-For security reasons, all IDs used in API requests and responses are encrypted. To get the encrypted identifiers for your organisation's LinkedIn users and campaign routines, use the following endpoint:
+For security reasons, all IDs used in API requests and responses are encrypted. To get the encrypted identifiers for your organisation's LinkedIn users and campaign routines, use the following endpoint.
 
+### Get Encrypted Identifiers
+
+Retrieves encrypted identifiers for all LinkedIn users and campaign routines in your organisation.
+
+```http
+GET /user-campaign-filters
 ```
-GET /social_app/api/v1/third_party/user-campaign-filters
-```
 
-This endpoint returns encrypted IDs that should be used in subsequent API calls. The system automatically decrypts these IDs when processing your requests.
+#### Headers
 
-#### Example Response
+| Key | Value | Description |
+|-----|-------|-------------|
+| Authorization | your_api_key_here | Your API key |
+| Content-Type | application/json | The content type |
+
+#### Responses
+
+##### 200: Success
 
 ```json
 {
@@ -34,12 +74,18 @@ This endpoint returns encrypted IDs that should be used in subsequent API calls.
         "name": "User Name",
         "email": "user@example.com",
         "status": "active"
+      },
+      {
+        "linkedin_user_information_id": "encrypted_id_string_2",
+        "name": "Jane Smith",
+        "email": "jane.smith@example.com",
+        "status": "active"
       }
     ],
     "campaign_routines": [
       {
         "linkedin_campaign_routine_id": "encrypted_id_string",
-        "name": "Campaign Name",
+        "name": "Q2 Sales Outreach",
         "campaign_type": "smart_campaign",
         "campaign_status": "active",
         "created_at": "2025-05-01T10:15:30Z"
@@ -47,30 +93,55 @@ This endpoint returns encrypted IDs that should be used in subsequent API calls.
     ],
     "organisation": {
       "id": 123,
-      "name": "Example Organization"
+      "name": "Example Organization",
+      "created_at": "2024-01-15T08:30:00Z",
+      "subscription_status": "active"
     }
   }
 }
 ```
 
-## Endpoints
+##### 401: Unauthorized
+
+```json
+{
+  "code": 401,
+  "status": false,
+  "message": "Unauthorized access",
+  "data": {
+    "error": "Invalid API key",
+    "error_code": "INVALID_API_KEY",
+    "request_id": "req_12345abcde",
+    "timestamp": "2025-05-11T14:30:45+05:30"
+  }
+}
+```
+
+---
+
+## API Key Management
 
 ### Create API Key
 
-```
-POST /social_app/api/v1/third_party/create-api-key
-```
-
 Creates a new API key for an organization. This endpoint requires admin authentication.
 
-#### Request Parameters
+```http
+POST /create-api-key
+```
+
+#### Headers
+
+| Key | Value | Description |
+|-----|-------|-------------|
+| Authorization | your_api_key_here | Your API key |
+| Content-Type | application/json | The content type |
+
+#### Body Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | organisation_id | Integer | No | ID of the organization to create the API key for. If not provided, uses the current user's organization. |
 | description | String | No | Description for the API key. If not provided, a default description with the current timestamp will be used. |
-
-#### Example Request
 
 ```json
 {
@@ -79,7 +150,9 @@ Creates a new API key for an organization. This endpoint requires admin authenti
 }
 ```
 
-#### Example Response
+#### Responses
+
+##### 200: Success
 
 ```json
 {
@@ -99,7 +172,7 @@ Creates a new API key for an organization. This endpoint requires admin authenti
 }
 ```
 
-#### Error Response
+##### 401: Unauthorized
 
 ```json
 {
@@ -115,24 +188,33 @@ Creates a new API key for an organization. This endpoint requires admin authenti
 }
 ```
 
+---
+
+## Dashboard Analytics
+
 ### Get Dashboard Information
 
+Returns dashboard analytics data including campaign statistics, connection graphs, and more.
+
+```http
+GET /dashboard-info
+POST /dashboard-info
 ```
-GET /social_app/api/v1/third_party/dashboard-info
-POST /social_app/api/v1/third_party/dashboard-info
-```
 
-Returns dashboard analytics data including campaign statistics, connection graphs, and more. Supports both GET and POST methods.
+#### Headers
 
-#### Query Parameters
+| Key | Value | Description |
+|-----|-------|-------------|
+| Authorization | your_api_key_here | Your API key |
+| Content-Type | application/json | The content type |
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| linkedin_user_information_ids | Array | Optional. Array of LinkedIn user information IDs to filter by |
-| start_date | Date | Optional. Start date for data range (format: YYYY-MM-DD) |
-| end_date | Date | Optional. End date for data range (format: YYYY-MM-DD) |
+#### Query Parameters (GET) / Body Parameters (POST)
 
-#### Example Request (POST)
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| linkedin_user_information_ids | Array | No | Array of LinkedIn user information IDs to filter by |
+| start_date | Date | No | Start date for data range (format: YYYY-MM-DD) |
+| end_date | Date | No | End date for data range (format: YYYY-MM-DD) |
 
 ```json
 {
@@ -142,7 +224,10 @@ Returns dashboard analytics data including campaign statistics, connection graph
 }
 ```
 
-#### Example Response
+#### Response
+
+<details>
+<summary>Example Response (200 OK)</summary>
 
 ```json
 {
@@ -159,39 +244,8 @@ Returns dashboard analytics data including campaign statistics, connection graph
         {
           "date": "2025-05-02",
           "count_data": 32
-        },
-        {
-          "date": "2025-05-03",
-          "count_data": 18
-        },
-        {
-          "date": "2025-05-04",
-          "count_data": 22
-        },
-        {
-          "date": "2025-05-05",
-          "count_data": 30
-        },
-        {
-          "date": "2025-05-06",
-          "count_data": 28
-        },
-        {
-          "date": "2025-05-07",
-          "count_data": 35
-        },
-        {
-          "date": "2025-05-08",
-          "count_data": 40
-        },
-        {
-          "date": "2025-05-09",
-          "count_data": 45
-        },
-        {
-          "date": "2025-05-10",
-          "count_data": 38
         }
+        // Additional data points...
       ],
       "total_member_count": 313
     },
@@ -204,88 +258,10 @@ Returns dashboard analytics data including campaign statistics, connection graph
     },
     "connection_graph": {
       "request": [
-        {
-          "date": "2025-05-01",
-          "count_data": 50
-        },
-        {
-          "date": "2025-05-02",
-          "count_data": 65
-        },
-        {
-          "date": "2025-05-03",
-          "count_data": 42
-        },
-        {
-          "date": "2025-05-04",
-          "count_data": 38
-        },
-        {
-          "date": "2025-05-05",
-          "count_data": 55
-        },
-        {
-          "date": "2025-05-06",
-          "count_data": 60
-        },
-        {
-          "date": "2025-05-07",
-          "count_data": 70
-        },
-        {
-          "date": "2025-05-08",
-          "count_data": 75
-        },
-        {
-          "date": "2025-05-09",
-          "count_data": 80
-        },
-        {
-          "date": "2025-05-10",
-          "count_data": 72
-        }
+        // Connection request data...
       ],
       "accept": [
-        {
-          "date": "2025-05-01",
-          "count_data": 30
-        },
-        {
-          "date": "2025-05-02",
-          "count_data": 40
-        },
-        {
-          "date": "2025-05-03",
-          "count_data": 25
-        },
-        {
-          "date": "2025-05-04",
-          "count_data": 22
-        },
-        {
-          "date": "2025-05-05",
-          "count_data": 35
-        },
-        {
-          "date": "2025-05-06",
-          "count_data": 38
-        },
-        {
-          "date": "2025-05-07",
-          "count_data": 45
-        },
-        {
-          "date": "2025-05-08",
-          "count_data": 48
-        },
-        {
-          "date": "2025-05-09",
-          "count_data": 52
-        },
-        {
-          "date": "2025-05-10",
-          "count_data": 47
-        }
+        // Connection accept data...
       ],
       "pending_reject_count": 157,
       "total_friend_accept_count": 382,
@@ -297,56 +273,7 @@ Returns dashboard analytics data including campaign statistics, connection graph
       "replied": 215,
       "response_rate": 41.3,
       "daily_stats": [
-        {
-          "date": "2025-05-01",
-          "sent": 45,
-          "replied": 18
-        },
-        {
-          "date": "2025-05-02",
-          "sent": 52,
-          "replied": 22
-        },
-        {
-          "date": "2025-05-03",
-          "sent": 38,
-          "replied": 15
-        },
-        {
-          "date": "2025-05-04",
-          "sent": 35,
-          "replied": 14
-        },
-        {
-          "date": "2025-05-05",
-          "sent": 48,
-          "replied": 20
-        },
-        {
-          "date": "2025-05-06",
-          "sent": 55,
-          "replied": 23
-        },
-        {
-          "date": "2025-05-07",
-          "sent": 62,
-          "replied": 26
-        },
-        {
-          "date": "2025-05-08",
-          "sent": 68,
-          "replied": 28
-        },
-        {
-          "date": "2025-05-09",
-          "sent": 72,
-          "replied": 30
-        },
-        {
-          "date": "2025-05-10",
-          "sent": 65,
-          "replied": 27
-        }
+        // Daily message statistics...
       ]
     },
     "campaign_types": {
@@ -365,22 +292,17 @@ Returns dashboard analytics data including campaign statistics, connection graph
         "response_rate": 42.8,
         "active_campaigns": 6
       },
-      {
-        "linkedin_user_information_id": "encrypted_id_string_2",
-        "name": "Jane Smith",
-        "email": "jane.smith@example.com",
-        "connection_rate": 60.5,
-        "response_rate": 39.7,
-        "active_campaigns": 4
-      }
+      // Additional user performance data...
     ],
     "timestamp": "2025-05-11T14:59:52+05:30",
     "request_id": "req_dashboard_12345"
   }
 }
 ```
+</details>
 
-#### Error Response
+<details>
+<summary>Error Response (400 Bad Request)</summary>
 
 ```json
 {
@@ -395,32 +317,47 @@ Returns dashboard analytics data including campaign statistics, connection graph
   }
 }
 ```
+</details>
+
+---
+
+## Campaign Management
 
 ### Get Campaign Information
 
+> Returns detailed information about campaigns.
+
 ```
-GET /social_app/api/v1/third_party/campaign-info
-POST /social_app/api/v1/third_party/campaign-info
+GET /campaign-info
+POST /campaign-info
 ```
 
-Returns detailed information about campaigns. Supports both GET and POST methods.
+#### Request Headers
 
-#### Query Parameters
+| Header | Value |
+|--------|-------|
+| Authorization | your_api_key_here |
+| Content-Type | application/json |
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| linkedin_user_information_ids | Array | Optional. Array of encrypted LinkedIn user information IDs to filter by |
-| start_date | Date | Optional. Start date for data range (format: YYYY-MM-DD) |
-| end_date | Date | Optional. End date for data range (format: YYYY-MM-DD) |
-| limit | Integer | Optional. Number of results to return (default: 50) |
-| offset | Integer | Optional. Offset for pagination (default: 0) |
-| term | String | Optional. Search term to filter campaign names |
-| campaign_status | String | Optional. Filter by campaign status (active, inactive, completed, draft) |
-| campaign_type | String | Optional. Filter by campaign type (smart_campaign, friend_campaign, etc.) |
-| sort_by | String | Optional. Field to sort results by (created_at, campaign_name, etc.) |
-| sort_order | String | Optional. Sort order (asc, desc) |
+#### Request Parameters
 
-#### Example Request (POST)
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| linkedin_user_information_ids | Array | No | Array of encrypted LinkedIn user information IDs to filter by |
+| start_date | Date | No | Start date for data range (format: YYYY-MM-DD) |
+| end_date | Date | No | End date for data range (format: YYYY-MM-DD) |
+| limit | Integer | No | Number of results to return (default: 50) |
+| offset | Integer | No | Offset for pagination (default: 0) |
+| term | String | No | Search term to filter campaign names |
+| campaign_status | String | No | Filter by campaign status (active, inactive, completed, draft) |
+| campaign_type | String | No | Filter by campaign type (smart_campaign, friend_campaign, etc.) |
+| sort_by | String | No | Field to sort results by (created_at, campaign_name, etc.) |
+| sort_order | String | No | Sort order (asc, desc) |
+
+#### Request Body (POST)
+
+<details>
+<summary>Example Request</summary>
 
 ```json
 {
@@ -434,8 +371,12 @@ Returns detailed information about campaigns. Supports both GET and POST methods
   "sort_order": "desc"
 }
 ```
+</details>
 
-#### Example Response
+#### Response
+
+<details>
+<summary>Example Response (200 OK)</summary>
 
 ```json
 {
@@ -470,39 +411,7 @@ Returns detailed information about campaigns. Supports both GET and POST methods
         "response_rate": 50.0,
         "campaign_duration_days": 3,
         "daily_stats": [
-          {
-            "date": "2025-05-08",
-            "connections": {
-              "sent": 40,
-              "accepted": 28
-            },
-            "messages": {
-              "sent": 30,
-              "replied": 15
-            }
-          },
-          {
-            "date": "2025-05-09",
-            "connections": {
-              "sent": 35,
-              "accepted": 26
-            },
-            "messages": {
-              "sent": 28,
-              "replied": 14
-            }
-          },
-          {
-            "date": "2025-05-10",
-            "connections": {
-              "sent": 25,
-              "accepted": 21
-            },
-            "messages": {
-              "sent": 22,
-              "replied": 11
-            }
-          }
+          // Daily campaign statistics...
         ],
         "linkedin_user": {
           "name": "John Doe",
@@ -511,118 +420,10 @@ Returns detailed information about campaigns. Supports both GET and POST methods
           "status": "active"
         },
         "campaign_steps": [
-          {
-            "step_id": "encrypted_step_id_1",
-            "step_name": "Initial Connection",
-            "step_type": "connection_request",
-            "completion_rate": 85.0
-          },
-          {
-            "step_id": "encrypted_step_id_2",
-            "step_name": "Follow-up Message",
-            "step_type": "message",
-            "completion_rate": 75.0
-          }
+          // Campaign steps information...
         ]
       },
-      {
-        "linkedin_campaign_routine": {
-          "id": "encrypted_id_string_2",
-          "campaign_name": "Marketing Directors Network",
-          "campaign_status": "active",
-          "campaign_type": "friend_campaign",
-          "created_at": "2025-05-07T14:30:45Z",
-          "last_activate_time": "2025-05-08T09:15:20Z",
-          "initial_activate_time": "2025-05-07T16:45:30Z",
-          "max_campaign_days": 7,
-          "source": "manual",
-          "metadata": {
-            "target_industry": "Marketing",
-            "target_positions": ["CMO", "Marketing Director", "Head of Marketing"],
-            "campaign_goals": "Build marketing professional network"
-          }
-        },
-        "member_count": 120,
-        "friend_request_count": 85,
-        "friend_accept_count": 60,
-        "connection_percentage": 70.6,
-        "message_sent_count": 65,
-        "message_replied_count": 32,
-        "response_rate": 49.2,
-        "campaign_duration_days": 4,
-        "daily_stats": [
-          {
-            "date": "2025-05-07",
-            "connections": {
-              "sent": 25,
-              "accepted": 16
-            },
-            "messages": {
-              "sent": 18,
-              "replied": 8
-            }
-          },
-          {
-            "date": "2025-05-08",
-            "connections": {
-              "sent": 22,
-              "accepted": 15
-            },
-            "messages": {
-              "sent": 16,
-              "replied": 8
-            }
-          },
-          {
-            "date": "2025-05-09",
-            "connections": {
-              "sent": 20,
-              "accepted": 16
-            },
-            "messages": {
-              "sent": 17,
-              "replied": 9
-            }
-          },
-          {
-            "date": "2025-05-10",
-            "connections": {
-              "sent": 18,
-              "accepted": 13
-            },
-            "messages": {
-              "sent": 14,
-              "replied": 7
-            }
-          }
-        ],
-        "linkedin_user": {
-          "name": "Jane Smith",
-          "linkedin_user_information_id": "encrypted_id_string_2",
-          "email": "jane.smith@example.com",
-          "status": "active"
-        },
-        "campaign_steps": [
-          {
-            "step_id": "encrypted_step_id_3",
-            "step_name": "Initial Connection",
-            "step_type": "connection_request",
-            "completion_rate": 82.5
-          },
-          {
-            "step_id": "encrypted_step_id_4",
-            "step_name": "Welcome Message",
-            "step_type": "message",
-            "completion_rate": 70.2
-          },
-          {
-            "step_id": "encrypted_step_id_5",
-            "step_name": "Follow-up Message",
-            "step_type": "message",
-            "completion_rate": 58.6
-          }
-        ]
-      }
+      // Additional campaign information...
     ],
     "total_campaign_routines_count": 8,
     "pagination": {
@@ -646,8 +447,10 @@ Returns detailed information about campaigns. Supports both GET and POST methods
   }
 }
 ```
+</details>
 
-#### Error Response
+<details>
+<summary>Error Response (400 Bad Request)</summary>
 
 ```json
 {
@@ -662,49 +465,35 @@ Returns detailed information about campaigns. Supports both GET and POST methods
   }
 }
 ```
-
-## Error Handling
-
-All endpoints return a standard error format:
-
-```json
-{
-  "code": 400,
-  "status": false,
-  "message": "Error occurred",
-  "data": {
-    "error": "Error message details",
-    "error_code": "INVALID_REQUEST",
-    "request_id": "req_12345abcde",
-    "timestamp": "2025-05-09T22:36:05+05:30"
-  }
-}
-```
-
-Common error codes:
-
-- 400: Bad Request - The request was invalid
-- 401: Unauthorized - Invalid or missing API key
-- 404: Not Found - The requested resource was not found
-- 500: Internal Server Error - Something went wrong on the server
+</details>
 
 ### Get Optimized Campaign Routine Data
 
+> Returns detailed analytics and information for a specific campaign routine.
+
 ```
-GET /social_app/api/v1/third_party/optimized_routine_data
+GET /optimized_routine_data
 ```
 
-Returns detailed analytics and information for a specific campaign routine.
+#### Request Headers
 
-#### Query Parameters
+| Header | Value |
+|--------|-------|
+| Authorization | your_api_key_here |
+| Content-Type | application/json |
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| linkedin_campaign_routine_id | String | Required. Encrypted ID of the LinkedIn campaign routine |
-| start_date | Date | Optional. Start date for data range (format: YYYY-MM-DD) |
-| end_date | Date | Optional. End date for data range (format: YYYY-MM-DD) |
+#### Request Parameters
 
-#### Example Response
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| linkedin_campaign_routine_id | String | Yes | Encrypted ID of the LinkedIn campaign routine |
+| start_date | Date | No | Start date for data range (format: YYYY-MM-DD) |
+| end_date | Date | No | End date for data range (format: YYYY-MM-DD) |
+
+#### Response
+
+<details>
+<summary>Example Response (200 OK)</summary>
 
 ```json
 {
@@ -730,16 +519,7 @@ Returns detailed analytics and information for a specific campaign routine.
         "connection_percentage": 75.0,
         "pending_count": 25,
         "daily_metrics": [
-          {
-            "date": "2025-05-01",
-            "requests_sent": 20,
-            "requests_accepted": 15
-          },
-          {
-            "date": "2025-05-02",
-            "requests_sent": 25,
-            "requests_accepted": 18
-          }
+          // Daily connection metrics...
         ]
       },
       "message_metrics": {
@@ -747,42 +527,12 @@ Returns detailed analytics and information for a specific campaign routine.
         "message_replied_count": 40,
         "response_rate": 50.0,
         "daily_metrics": [
-          {
-            "date": "2025-05-01",
-            "messages_sent": 15,
-            "messages_replied": 8
-          },
-          {
-            "date": "2025-05-02",
-            "messages_sent": 20,
-            "messages_replied": 10
-          }
+          // Daily message metrics...
         ]
       }
     },
     "campaign_steps": [
-      {
-        "step_id": "encrypted_step_id_1",
-        "step_name": "Initial Connection",
-        "step_type": "connection_request",
-        "completion_rate": 85.0,
-        "metrics": {
-          "total_attempts": 100,
-          "successful": 85,
-          "failed": 15
-        }
-      },
-      {
-        "step_id": "encrypted_step_id_2",
-        "step_name": "Follow-up Message",
-        "step_type": "message",
-        "completion_rate": 75.0,
-        "metrics": {
-          "total_attempts": 85,
-          "successful": 75,
-          "failed": 10
-        }
-      }
+      // Campaign steps with metrics...
     ],
     "linkedin_user": {
       "name": "John Doe",
@@ -792,84 +542,46 @@ Returns detailed analytics and information for a specific campaign routine.
   }
 }
 ```
+</details>
 
-### Get Encrypted Identifiers
+---
 
-```
-GET /social_app/api/v1/third_party/user-campaign-filters
-```
+## Error Handling
 
-Returns encrypted identifiers for all LinkedIn users and campaign routines in your organisation.
-
-#### Example Response
+All endpoints return a standard error format:
 
 ```json
 {
-  "code": 200,
-  "status": true,
-  "message": "Encrypted identifiers retrieved successfully",
+  "code": 400,
+  "status": false,
+  "message": "Error occurred",
   "data": {
-    "linkedin_users": [
-      {
-        "linkedin_user_information_id": "encrypted_id_string",
-        "name": "User Name",
-        "email": "user@example.com",
-        "status": "active"
-      },
-      {
-        "linkedin_user_information_id": "encrypted_id_string_2",
-        "name": "Jane Smith",
-        "email": "jane.smith@example.com",
-        "status": "active"
-      },
-      {
-        "linkedin_user_information_id": "encrypted_id_string_3",
-        "name": "Robert Johnson",
-        "email": "robert.johnson@example.com",
-        "status": "inactive"
-      }
-    ],
-    "campaign_routines": [
-      {
-        "linkedin_campaign_routine_id": "encrypted_id_string",
-        "name": "Q2 Sales Outreach",
-        "campaign_type": "smart_campaign",
-        "campaign_status": "active",
-        "created_at": "2025-05-01T10:15:30Z"
-      },
-      {
-        "linkedin_campaign_routine_id": "encrypted_id_string_2",
-        "name": "Marketing Professionals Network",
-        "campaign_type": "friend_campaign",
-        "campaign_status": "active",
-        "created_at": "2025-04-15T14:22:10Z"
-      },
-      {
-        "linkedin_campaign_routine_id": "encrypted_id_string_3",
-        "name": "Tech Conference Follow-up",
-        "campaign_type": "connector_campaign",
-        "campaign_status": "completed",
-        "created_at": "2025-03-20T09:45:00Z"
-      }
-    ],
-    "organisation": {
-      "id": 123,
-      "name": "Example Organization",
-      "created_at": "2024-01-15T08:30:00Z",
-      "subscription_status": "active"
-    }
+    "error": "Error message details",
+    "error_code": "INVALID_REQUEST",
+    "request_id": "req_12345abcde",
+    "timestamp": "2025-05-09T22:36:05+05:30"
   }
 }
 ```
 
-## Rate Limiting
+### Common Error Codes
 
-API requests are subject to rate limiting to prevent abuse. Current limits:
+| Code | Description |
+|------|-------------|
+| 400 | Bad Request - The request was invalid |
+| 401 | Unauthorized - Invalid or missing API key |
+| 404 | Not Found - The requested resource was not found |
+| 500 | Internal Server Error - Something went wrong on the server |
 
-- 100 requests per minute per API key and IP address
-- 5,000 requests per day per API key and IP address
+---
 
-Exceeding these limits will result in a 429 Too Many Requests response with the following format:
+## Rate Limits
+
+LinkedIn API allows a maximum of `100` requests per minute and `5,000` requests per day. All requests count towards these limits, regardless of whether they succeed or fail.
+
+If you exceed the rate limits, you will receive a `429 Too Many Requests` response with details about when you can retry.
+
+### Rate Limit Response
 
 ```json
 {
@@ -896,9 +608,120 @@ Exceeding these limits will result in a 429 Too Many Requests response with the 
 
 Each API response includes headers that provide information about your current rate limit status:
 
-- `X-RateLimit-Limit-Minute`: Maximum number of requests allowed per minute (100)
-- `X-RateLimit-Remaining-Minute`: Number of requests remaining in the current minute window
-- `X-RateLimit-Limit-Day`: Maximum number of requests allowed per day (5,000)
-- `X-RateLimit-Remaining-Day`: Number of requests remaining in the current day window
+| Header | Description |
+|--------|-------------|
+| X-RateLimit-Limit-Minute | Maximum number of requests allowed per minute (100) |
+| X-RateLimit-Remaining-Minute | Number of requests remaining in the current minute window |
+| X-RateLimit-Limit-Day | Maximum number of requests allowed per day (5,000) |
+| X-RateLimit-Remaining-Day | Number of requests remaining in the current day window |
 
-When a rate limit is exceeded, the `retry_after` field in the response indicates the number of seconds (for minute limits) or hours (for daily limits) to wait before making another request.
+---
+
+## Code Examples
+
+### Get Dashboard Information
+
+#### cURL
+
+```bash
+curl --location 'https://dev-api.konnector.ai/social_app/api/v1/third_party/dashboard-info' \
+--header 'Authorization: your_api_key_here' \
+--header 'Content-Type: application/json'
+```
+
+#### JavaScript (Fetch)
+
+```javascript
+var requestOptions = {
+  method: 'GET',
+  headers: {
+    'Authorization': 'your_api_key_here',
+    'Content-Type': 'application/json'
+  },
+  redirect: 'follow'
+};
+
+fetch("https://dev-api.konnector.ai/social_app/api/v1/third_party/dashboard-info", requestOptions)
+  .then(response => response.json())
+  .then(result => console.log(result))
+  .catch(error => console.log('error', error));
+```
+
+#### NodeJs (Axios)
+
+```javascript
+var axios = require('axios');
+
+var config = {
+  method: 'get',
+  url: 'https://dev-api.konnector.ai/social_app/api/v1/third_party/dashboard-info',
+  headers: { 
+    'Authorization': 'your_api_key_here', 
+    'Content-Type': 'application/json'
+  }
+};
+
+axios(config)
+.then(function (response) {
+  console.log(JSON.stringify(response.data));
+})
+.catch(function (error) {
+  console.log(error);
+});
+```
+
+#### Python (Requests)
+
+```python
+import requests
+
+url = "https://dev-api.konnector.ai/social_app/api/v1/third_party/dashboard-info"
+
+headers = {
+  'Authorization': 'your_api_key_here',
+  'Content-Type': 'application/json'
+}
+
+response = requests.request("GET", url, headers=headers)
+
+print(response.text)
+```
+
+#### PHP (cURL)
+
+```php
+<?php
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => 'https://dev-api.konnector.ai/social_app/api/v1/third_party/dashboard-info',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'GET',
+  CURLOPT_HTTPHEADER => array(
+    'Authorization: your_api_key_here',
+    'Content-Type: application/json'
+  ),
+));
+
+$response = curl_exec($curl);
+
+curl_close($curl);
+echo $response;
+```
+
+---
+
+## Enjoy building 🛠️
+
+If you encounter any issues or have questions about the API, please contact our support team at api-support@example.com or visit our developer portal at https://developers.example.com.
+
+---
+
+<div style="text-align: center; margin-top: 50px; color: #075e54;">
+  <p>© 2025 Example Organization. All rights reserved.</p>
+</div>
