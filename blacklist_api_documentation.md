@@ -46,6 +46,14 @@ Errors follow the same format, but with appropriate status codes and error messa
 }
 ```
 
+## Blacklist Integration with Campaigns
+
+Blacklists can be integrated with LinkedIn campaigns to exclude specific blacklist campaigns. This allows you to run campaigns while ignoring certain blacklisted profiles.
+
+### Excluded Blacklist IDs
+
+When updating a campaign routine, you can specify which blacklist campaigns should be excluded from consideration. This is done by including the `excluded_blacklist_ids` setting in the campaign settings.
+
 ## Endpoints
 
 ### 1. List Blacklist Campaigns
@@ -120,7 +128,11 @@ curl -X POST "https://dev-api.konnector.ai/social_app/api/v1/blacklist/add_to_bl
     "organisation_member_id": 16,
     "blacklist": {
       "linkedin_campaign_member_ids": [789, 790, 791],
-      "linkedin_user_campaign_id": 123
+      "linkedin_user_campaign_id": 123,
+      "linkedin_campaign_routine_id": 2442,
+      "excluded_campaign_member_ids": [792, 793],
+      "linkedin_user_campaign_ids": [456, 457],
+      "campaign_name": "Custom Blacklist"
     },
     "linkedin_user_information_id": 863
   }'
@@ -131,9 +143,15 @@ curl -X POST "https://dev-api.konnector.ai/social_app/api/v1/blacklist/add_to_bl
 | Parameter                                  | Type    | Required | Description                                       |
 |--------------------------------------------|---------|----------|---------------------------------------------------|
 | organisation_member_id                     | Integer | Yes      | ID of the organization member making the request  |
-| blacklist[linkedin_campaign_member_ids]    | Array   | Yes      | Array of LinkedIn campaign member IDs to blacklist|
+| blacklist[linkedin_campaign_member_ids]    | Array   | Yes*     | Array of LinkedIn campaign member IDs to blacklist|
+| blacklist[linkedin_user_campaign_ids]      | Array   | Yes*     | Array of LinkedIn user campaign IDs to blacklist  |
 | blacklist[linkedin_user_campaign_id]       | Integer | No       | ID of existing blacklist campaign (if updating)   |
+| blacklist[linkedin_campaign_routine_id]    | Integer | No       | ID of the campaign routine to associate with the blacklist |
+| blacklist[excluded_campaign_member_ids]    | Array   | No       | Array of campaign member IDs to exclude from blacklisting |
+| blacklist[campaign_name]                   | String  | No       | Optional name for the blacklist campaign          |
 | linkedin_user_information_id               | Integer | No       | ID of LinkedIn user information (optional)        |
+
+*Either `linkedin_campaign_member_ids` or `linkedin_user_campaign_ids` must be provided
 
 #### Example Request
 
@@ -142,7 +160,11 @@ curl -X POST "https://dev-api.konnector.ai/social_app/api/v1/blacklist/add_to_bl
   "organisation_member_id": 456,
   "blacklist": {
     "linkedin_campaign_member_ids": [789, 790, 791],
-    "linkedin_user_campaign_id": 123
+    "linkedin_user_campaign_id": 123,
+    "linkedin_campaign_routine_id": 2442,
+    "excluded_campaign_member_ids": [792, 793],
+    "linkedin_user_campaign_ids": [456, 457],
+    "campaign_name": "Custom Blacklist"
   },
   "linkedin_user_information_id": 345
 }
@@ -319,6 +341,101 @@ curl -X GET "https://dev-api.konnector.ai/social_app/api/v1/blacklist/campaigns/
 
 5. **Error Handling**: All endpoints include appropriate error messages and status codes for common error scenarios.
 
+6. **Excluded Blacklists**: Campaigns can exclude specific blacklist campaigns by using the `excluded_blacklist_ids` setting in the campaign settings. This allows campaigns to ignore certain blacklisted profiles.
+
+## Campaign Integration
+
+### Update Routine with Excluded Blacklist IDs
+
+To update a campaign routine with excluded blacklist IDs, use the update_routine endpoint:
+
+- **URL**: `/social_app/api/v1/social-api/update_routine`
+- **Method**: `POST`
+- **Authentication**: Required
+
+#### Example Request
+
+```bash
+curl --location --request POST 'https://dev-api.konnector.ai/social_app/api/v1/social-api/update_routine?organisation_member_id=16&time_zone=Asia%2FCalcutta' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-US,en;q=0.9' \
+--header 'Authorization: 869d05d20e57f119a228de87f65a7c709fb6d794408a17c15829f5cb58cbf28f' \
+--header 'Connection: keep-alive' \
+--header 'Origin: https://dev-next.konnector.ai' \
+--header 'Referer: https://dev-next.konnector.ai/' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "linkedin_user_information_id": 863,
+    "change_after_live": false,
+    "linkedin_campaign_routine_id": "2442",
+    "stage": 3,
+    "campaign_status": "inactive",
+    "is_draft": false,
+    "campaign_name": "New AI Test 34",
+    "settings": [
+        {
+            "email_source": [
+                {
+                    "id": "email",
+                    "title": "Lead\'s LinkedIn profile",
+                    "priority": "P1",
+                    "enabled": false
+                },
+                {
+                    "id": "find_email",
+                    "title": "Konnector Email Finder",
+                    "priority": null,
+                    "enabled": false
+                },
+                {
+                    "id": "csv_email",
+                    "title": "Your CSV Upload",
+                    "priority": null,
+                    "enabled": false
+                }
+            ]
+        },
+        {
+            "comment_settings": [
+                {
+                    "auto_comment_enabled": false,
+                    "comment_strategy": "wait_approval_continue"
+                }
+            ]
+        },{
+            "excluded_blacklist_ids": [5224]
+        }
+    ],
+    "linkedin_user_information_ids": [
+        863
+    ]
+}'
+```
+
+#### Request Body Parameters for Excluded Blacklist IDs
+
+| Parameter                     | Type    | Description                                       |
+|------------------------------|---------|--------------------------------------------------|
+| settings                     | Array   | Array of setting objects                          |
+| settings[].excluded_blacklist_ids | Array   | **NEW SETTING**: Array of blacklist campaign IDs to exclude from this campaign |
+
+#### Success Response
+
+```json
+{
+  "code": 200,
+  "status": true,
+  "message": "Campaign routine updated successfully",
+  "data": {
+    "campaign_id": 2442,
+    "campaign_name": "New AI Test 34",
+    "settings": {
+      "excluded_blacklist_ids": [5224]
+    }
+  }
+}
+```
+
 ## UI Implementation Recommendations
 
 1. **Blacklist Management Page**:
@@ -340,3 +457,4 @@ curl -X GET "https://dev-api.konnector.ai/social_app/api/v1/blacklist/campaigns/
    - Add "Blacklist" action button in member lists throughout the application
    - Show blacklist status indicator on member profiles
    - Prevent blacklisted members from being added to active campaigns
+   - Option to exclude specific blacklist campaigns when configuring LinkedIn campaigns
